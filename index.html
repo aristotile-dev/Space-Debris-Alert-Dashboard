@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#060d4a" />
+    <meta name="description" content="Pick a satellite and find out who comes close to it in the next 24 hours. 13,000+ tracked objects, real SGP4 physics, an AI analyst, one tap." />
+    <title>Cassandra Orbit: is your satellite safe?</title>
+    <style>
+      /* Opening screen: inline so it paints before any script, and stays until fonts and the first view are ready. */
+      html { background:#060d4a; }
+      body { margin:0; background:#060d4a; }
+      #boot { position:fixed; inset:0; z-index:99999; display:grid; place-items:center; background:radial-gradient(900px 600px at 50% 45%, #1a2fd0 0%, #0a1590 45%, #050a3a 100%); transition:opacity .5s cubic-bezier(.22,1,.36,1), visibility .5s; }
+      #boot.done { opacity:0; visibility:hidden; pointer-events:none; }
+      #boot .bx { display:grid; justify-items:center; gap:22px; }
+      #boot .orb { position:relative; width:84px; height:84px; border-radius:50%; background:radial-gradient(circle at 32% 28%, #e8fcff 0%, #5ef2ff 18%, #1c4cff 56%, #060d4a 100%); box-shadow:0 0 0 1px #ffffff55 inset, 0 14px 40px #000a, 0 20px 36px #000a; }
+      #boot .orb i { position:absolute; inset:-14px; border-radius:50%; border:2px solid #d9f6ff; border-left-color:transparent; border-bottom-color:transparent; animation:bo 1.5s linear infinite; }
+      #boot .orb b { position:absolute; width:9px; height:9px; border-radius:50%; background:#ff6a1a; top:-18px; left:50%; margin-left:-4px;  transform-origin:4px 60px; animation:bo 1.5s linear infinite; }
+      #boot .word { font:400 13px/1 'Arial Black','Helvetica Neue',Arial,sans-serif; letter-spacing:.32em; color:#d9f6ff; text-transform:uppercase; }
+      #boot .bar { position:relative; width:180px; height:6px; border-radius:6px; background:#ffffff26; overflow:hidden; }
+      #boot .bar i { position:absolute; inset:0 auto 0 0; width:12%; border-radius:6px; background:linear-gradient(#e8fcff,#5ef2ff 50%,#19a8e0); animation:bs 1.2s cubic-bezier(.65,0,.35,1) infinite alternate; }
+      @keyframes bo { to { transform:rotate(360deg); } }
+      @keyframes bs { from { width:12%; } to { width:100%; } }
+      @media (prefers-reduced-motion:reduce) { #boot .orb i, #boot .orb b, #boot .bar i { animation:none; } }
+    </style>
+    <noscript><style>#boot { display:none; }</style></noscript>
+  </head>
+  <body>
+    <div id="boot" role="status" aria-live="polite" aria-label="Loading Cassandra Orbit">
+      <div class="bx">
+        <div class="orb"><i></i><b></b></div>
+        <div class="word">Cassandra Orbit</div>
+        <div class="bar"><i></i></div>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
