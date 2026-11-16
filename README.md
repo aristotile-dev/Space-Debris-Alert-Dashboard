@@ -76,14 +76,6 @@ TLEs go stale within days. The snapshot is refreshed daily, but a scan on it sti
 | **AI** | Groq (`openai/gpt-oss-120b`) through its REST API. A rule-based briefing is used when there is no key. |
 | **Data** | [CelesTrak](https://celestrak.org) `active` group plus the Cosmos 2251, Iridium 33, Fengyun-1C and Cosmos 1408 debris groups, with a bundled snapshot in `backend/data/active.txt` and `backend/data/debris.txt`. Debris points are warm white on the globe and diamond-shaped on the timeline. |
 
-### On a phone
-
-<p align="center">
-  <img src="assets/phone.png?v=2" alt="Cassandra Orbit on a phone: the globe fills the top, the briefing and controls stack below" width="320">
-</p>
-
-<a id="run-it-yourself"></a>
-
 ## Run it yourself
 
 ```bash
