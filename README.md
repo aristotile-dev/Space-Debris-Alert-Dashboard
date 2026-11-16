@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/hero.png" alt="Cassandra Orbit: is the ISS safe? A glass Earth, the debris shell around it and the threat orbits in tangerine" width="100%">
+  <img src="assets/hero.png?v=2" alt="Cassandra Orbit: is the ISS safe? A glass Earth, the debris shell around it and the threat orbits in tangerine" width="100%">
 </p>
 
 <p align="center">
@@ -12,7 +12,7 @@
 
 <p align="center">
   <img alt="Physics" src="https://img.shields.io/badge/physics-SGP4-5ef2ff?style=flat-square&labelColor=060d4a">
-  <img alt="Objects" src="https://img.shields.io/badge/tracked%20objects-13%2C000%2B-ff6a1a?style=flat-square&labelColor=060d4a">
+  <img alt="Objects" src="https://img.shields.io/badge/tracked%20objects-18%2C000%2B-ff6a1a?style=flat-square&labelColor=060d4a">
   <img alt="Frontend" src="https://img.shields.io/badge/UI-React%20%2B%20three.js-61dafb?style=flat-square&logo=react&logoColor=white&labelColor=060d4a">
   <img alt="Backend" src="https://img.shields.io/badge/API-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white&labelColor=060d4a">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square&labelColor=060d4a">
@@ -25,7 +25,7 @@ Pick a satellite, hit **Scan**, and find out whether anything in orbit gets clos
 ## Features
 
 <p align="center">
-  <img src="assets/scan-hubble.png" alt="A Hubble scan: the whole catalogue as a point cloud around the glass Earth, Hubble's orbit in aqua and 343 close passes in tangerine" width="100%">
+  <img src="assets/scan-hubble.png?v=2" alt="A Hubble scan: the whole catalogue as a point cloud around the glass Earth, Hubble's orbit in aqua and 343 close passes in tangerine" width="100%">
 </p>
 
 * **A real physics scan.** Every object is flown forward 24 hours with SGP4, the standard orbit model, and the target is compared against all of them.
@@ -79,7 +79,7 @@ TLEs go stale within days. The snapshot is refreshed daily, but a scan on it sti
 ### On a phone
 
 <p align="center">
-  <img src="assets/phone.png" alt="Cassandra Orbit on a phone: the globe fills the top, the briefing and controls stack below" width="320">
+  <img src="assets/phone.png?v=2" alt="Cassandra Orbit on a phone: the globe fills the top, the briefing and controls stack below" width="320">
 </p>
 
 <a id="run-it-yourself"></a>
