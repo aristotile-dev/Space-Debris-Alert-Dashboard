@@ -300,7 +300,7 @@ export default function App() {
               <div><dt>Checked</dt><dd>{fmt(scan.objects_total)}</dd></div>
               <div><dt>Skipped</dt><dd>{fmt(scan.objects_screened_out)}</dd></div>
               <div><dt>Refined</dt><dd>{fmt(scan.objects_refined)}</dd></div>
-              <div><dt>Scan time</dt><dd>{scan.analysis_seconds}s{scan.cached ? " · cached" : ""}</dd></div>
+              <div><dt>Scan time</dt><dd>{scan.cached ? "cached" : `${scan.analysis_seconds}s`}</dd></div>
             </dl>
           </div>
         </aside>
