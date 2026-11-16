@@ -16,7 +16,7 @@ Two audiences at once, per the user: (1) a portfolio viewer (recruiter, engineer
 
 ## Product Purpose
 
-A space traffic alert tool. It takes orbital elements (TLEs) for 13,000+ tracked objects, propagates them over the next 24 hours, and finds objects that pass within a chosen distance of a target satellite (ISS, Hubble, a Starlink). It flags GREEN or RED, lists the threats, shows the closest approach in 3D, and gives a plain recommendation. Success: a first-time visitor understands the situation and is impressed ("wow factor", the user's words), and the numbers are physically sound.
+A space traffic alert tool. It takes orbital elements (TLEs) for 18,000+ tracked objects (working satellites plus known debris from the big breakups), propagates them over the next 24 hours, and finds objects that pass within a chosen distance of a target satellite (ISS, Hubble, a Starlink). It flags GREEN or RED, lists the threats, shows the closest approach in 3D, and gives a plain recommendation. Success: a first-time visitor understands the situation and is impressed ("wow factor", the user's words), and the numbers are physically sound.
 
 ## Positioning
 
@@ -40,7 +40,7 @@ Name today: "Cassandra Orbit" (renamed from "Cassandra Orbit Dashboard"; the rep
 
 ## Evidence on Hand
 
-`active.txt` (TLE snapshot, 13,163 objects), `app.py` (working analysis logic), two screenshots of the Streamlit app, the live Streamlit URL `https://space-alert-dashboard-try1.streamlit.app/` (currently redirecting). No testimonials, user numbers or benchmarks exist; none may be invented. README raw image links point at an old GitHub account (`ARISTOTILE-GIT`) and must be replaced.
+`active.txt` (the original TLE snapshot, 13,163 objects; now replaced by a fresher snapshot plus a debris file), `app.py` (working analysis logic), two screenshots of the Streamlit app, the live Streamlit URL `https://space-alert-dashboard-try1.streamlit.app/` (currently redirecting). No testimonials, user numbers or benchmarks exist; none may be invented. README raw image links point at an old GitHub account (`ARISTOTILE-GIT`) and must be replaced.
 
 ## Product Principles
 

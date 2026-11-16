@@ -65,6 +65,7 @@ def health():
     return {
         "ok": True,
         "snapshot_objects": cat.size,
+        "snapshot_debris": int(cat.kinds.sum()),
         "snapshot_epoch_utc": cat.latest_epoch.strftime("%Y-%m-%d %H:%M:%S"),
         "live_cached": store.live is not None,
         "live_age_s": int(time.time() - store.live.loaded_at) if store.live else None,
@@ -91,7 +92,7 @@ def objects(q: str = ""):
     if len(q) < 2:
         return {"results": []}
     cat = store.snapshot
-    res = [{"id": int(cat.satnums[i]), "name": n} for i, n in enumerate(cat.names) if q in n.upper()]
+    res = [{"id": int(cat.satnums[i]), "name": n + (" (debris)" if cat.kinds[i] == 1 else "")} for i, n in enumerate(cat.names) if q in n.upper()]
     res.sort(key=lambda r: (not r["name"].upper().startswith(q), len(r["name"])))
     return {"results": res[:8]}
 
@@ -100,7 +101,8 @@ def objects(q: str = ""):
 def cloud(source: str = "snapshot"):
     cat, note = store.get(source == "live")
     t0 = core.reference_time(cat)
-    return {"t0_utc": t0.strftime("%Y-%m-%d %H:%M:%S"), "source": cat.source, "note": note, "xyz_km": core.cloud_at(cat, t0)}
+    xyz, n_debris = core.cloud_at(cat, t0)
+    return {"t0_utc": t0.strftime("%Y-%m-%d %H:%M:%S"), "source": cat.source, "note": note, "xyz_km": xyz, "n_debris": n_debris}
 
 
 @app.post("/scan")

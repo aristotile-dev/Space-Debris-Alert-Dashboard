@@ -34,6 +34,9 @@ export default function App() {
   const [cloud, setCloud] = useState<Float32Array | null>(null);
   const demoCloud = useRef<Float32Array | null>(null);
   const liveCloud = useRef<Float32Array | null>(null);
+  const [nDebris, setNDebris] = useState(0);
+  const demoDebris = useRef(0);
+  const liveDebris = useRef(0);
   const [scan, setScan] = useState<Scan | null>(null);
   const [featured, setFeatured] = useState<Featured[]>([]);
   const [target, setTarget] = useState<Featured | null>(null);
@@ -58,6 +61,8 @@ export default function App() {
         if (off) return;
         const f = new Float32Array(d.xyz_km);
         demoCloud.current = f;
+        demoDebris.current = d.n_debris ?? 0;
+        setNDebris(d.n_debris ?? 0);
         setDemo(d);
         setCloud(f);
         setScan(d.scan);
@@ -98,9 +103,12 @@ export default function App() {
           try {
             const c = await getCloud("live");
             liveCloud.current = new Float32Array(c.xyz_km);
+            liveDebris.current = c.n_debris ?? 0;
           } catch { /* keep the snapshot cloud */ }
         }
-        setCloud(res.source === "live" && liveCloud.current ? liveCloud.current : demoCloud.current);
+        const useLive = res.source === "live" && !!liveCloud.current;
+        setCloud(useLive ? liveCloud.current : demoCloud.current);
+        setNDebris(useLive ? liveDebris.current : demoDebris.current);
         setSelected(null);
         setScan(res);
         const mapped = style;
@@ -190,7 +198,7 @@ export default function App() {
       <main className="console">
         <section className="stage" aria-label="Orbit view">
           <Suspense fallback={null}>
-            <Globe cloud={cloud} scan={scan} scanning={scanning} band={band} selectedId={selected} onPick={setSelected} />
+            <Globe cloud={cloud} nDebris={nDebris} scan={scan} scanning={scanning} band={band} selectedId={selected} onPick={setSelected} />
           </Suspense>
           <div className="ask">
             <h1>Is the {name} safe?</h1>
@@ -234,7 +242,7 @@ export default function App() {
             </div>
             <div className="search">
               {Icon.search}
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Or search any of 13,000 objects" aria-label="Search the catalogue" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Or search any of 18,000 objects" aria-label="Search the catalogue" />
               {results.length > 0 && (
                 <div className="results" role="listbox">
                   {results.map((r) => (
@@ -278,7 +286,7 @@ export default function App() {
                       <span className={"risk " + t.risk} aria-hidden="true" />
                       <span className="pn">
                         <b>{t.name}</b>
-                        <small>{hhmm(t.tca_utc)} UTC · {t.rel_speed_kms} km/s</small>
+                        <small>{hhmm(t.tca_utc)} UTC · {t.rel_speed_kms} km/s{t.kind === "debris" ? " · debris" : ""}</small>
                       </span>
                       <span className="km">{t.distance_km} km</span>
                     </button>
@@ -320,7 +328,7 @@ export default function App() {
               <tbody>
                 {scan.threats.map((t) => (
                   <tr key={t.id} className={selected === t.id ? "on" : ""} onClick={() => { setSelected(t.id); document.scrollingElement?.scrollTo({ top: 0, behavior: "smooth" }); }} tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") { setSelected(t.id); document.scrollingElement?.scrollTo({ top: 0, behavior: "smooth" }); } }}>
-                    <td>{t.name}</td>
+                    <td>{t.name}{t.kind === "debris" && <span className="deb">debris</span>}</td>
                     <td className="num">{t.distance_km} km</td>
                     <td className="num">{t.tca_utc}</td>
                     <td className="num">{t.rel_speed_kms} km/s</td>
@@ -416,7 +424,7 @@ function Chat({ scan, onClose }: { scan: Scan; onClose: () => void }) {
 /** The scan as the funnel it really is, drawn from this scan's own numbers (log scale so the small ends stay visible). */
 function Funnel({ scan }: { scan: Scan }) {
   const stages = [
-    { n: scan.objects_total, label: "Tracked objects", text: "Everything in the catalogue except the target itself." },
+    { n: scan.objects_total, label: "Tracked objects", text: "Working satellites plus known debris, except the target itself." },
     { n: scan.objects_propagated, label: "Share its altitude", text: "Objects that never reach the target's altitude are skipped before any maths." },
     { n: scan.objects_refined, label: "Pass close by", text: "Flown 24 hours with SGP4, then the close ones re-checked second by second." },
     { n: scan.threat_count, label: `Inside ${scan.threshold_km} km`, text: "The close calls: the orbits on the globe and what the analyst explains." },
@@ -483,7 +491,11 @@ function Timeline({ scan, selected, onPick }: { scan: Scan; selected: number | n
           return (
             <g key={t.id} className={"bead" + (on ? " on" : "")} tabIndex={0} role="button" aria-label={`${t.name}, ${t.distance_km} kilometres at ${t.tca_utc} UTC, ${t.rel_speed_kms} kilometres per second`} onClick={() => onPick(t.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPick(t.id); } }}>
               <title>{`${t.name}: ${t.distance_km} km at ${t.tca_utc.slice(11, 16)} UTC, ${t.rel_speed_kms} km/s`}</title>
+              {t.kind === "debris" ? (
+                <rect x={xs(t.seconds_from_start) - r} y={ys(t.distance_km) - r} width={r * 2} height={r * 2} transform={`rotate(45 ${xs(t.seconds_from_start)} ${ys(t.distance_km)})`} fill={col} fillOpacity={on ? 1 : 0.8} stroke="#fff" strokeOpacity={on ? 1 : 0.55} strokeWidth={on ? 2.4 : 1} />
+              ) : (
               <circle cx={xs(t.seconds_from_start)} cy={ys(t.distance_km)} r={r} fill={col} fillOpacity={on ? 1 : 0.8} stroke="#fff" strokeOpacity={on ? 1 : 0.55} strokeWidth={on ? 2.4 : 1} />
+              )}
               {on && <circle cx={xs(t.seconds_from_start)} cy={ys(t.distance_km)} r={r + 7} fill="none" stroke="#fff" strokeOpacity="0.7" />}
             </g>
           );

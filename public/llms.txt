@@ -1,6 +1,6 @@
 # Cassandra Orbit
 
-> Pick a satellite and find out who comes close to it in the next 24 hours. It screens 13,000+ tracked objects with SGP4 orbit physics, shows the close passes on a 3D globe, and explains them in plain language.
+> Pick a satellite and find out who comes close to it in the next 24 hours. It screens 18,000+ tracked satellites and pieces of debris with SGP4 orbit physics, shows the close passes on a 3D globe, and explains them in plain language.
 
 Cassandra Orbit is a screening demo built on public orbital elements (CelesTrak TLEs). Distances are estimates, not an operational collision probability.
 

@@ -320,3 +320,5 @@ input[type="range"] { border-radius: 8px; }
 .foot { margin: 12px auto 20px; }
 
 .funnel li p { min-height: calc(1.55em * 3); max-width: 30ch; text-wrap: pretty; }
+
+.deb { margin-left: 8px; padding: 1px 7px; border-radius: 6px; font-size: 10.5px; color: #ffe6b8; border: 1px solid rgba(255, 230, 184, 0.45); }

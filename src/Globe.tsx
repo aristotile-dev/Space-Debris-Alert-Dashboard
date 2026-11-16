@@ -10,6 +10,7 @@ const TANGERINE = 0xff6a1a;
 
 interface Props {
   cloud: Float32Array | null;
+  nDebris: number;
   scan: Scan | null;
   scanning: boolean;
   band: [number, number] | null; // target altitude band in km from Earth's centre, widened by the alert distance
@@ -19,25 +20,28 @@ interface Props {
 
 const cloudVert = /* glsl */ `
   uniform vec3 uTarget; uniform float uSweep; uniform vec2 uBand; uniform float uBandOn; uniform float uPx;
-  varying float vBand; varying float vSwept; varying float vDepth;
+  attribute float aDebris;
+  varying float vDeb; varying float vBand; varying float vSwept; varying float vDepth;
   void main() {
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     float r = length(position) * 1000.0;
+    vDeb = aDebris;
     vBand = (r > uBand.x && r < uBand.y) ? uBandOn : 0.0;
     float d = distance(position, uTarget) * 1000.0;
     vSwept = uSweep > 0.0 ? smoothstep(uSweep, uSweep - 2500.0, d) : 0.0;
     vDepth = clamp(1.0 - (-mv.z - 12.0) / 26.0, 0.25, 1.0);
-    gl_PointSize = uPx * (1.0 + vBand * 0.9 + vSwept * 1.2) * (0.7 + vDepth * 0.6);
+    gl_PointSize = uPx * (1.0 + vBand * 0.9 + vSwept * 1.2 + aDebris * 0.35) * (0.7 + vDepth * 0.6);
     gl_Position = projectionMatrix * mv;
   }
 `;
 const cloudFrag = /* glsl */ `
-  varying float vBand; varying float vSwept; varying float vDepth;
+  varying float vDeb; varying float vBand; varying float vSwept; varying float vDepth;
   void main() {
     vec2 c = gl_PointCoord - 0.5; float d = length(c); if (d > 0.5) discard;
     vec3 dim = vec3(0.62, 0.74, 1.0);
     vec3 aqua = vec3(0.37, 0.95, 1.0);
-    vec3 col = mix(dim, aqua, vBand);
+    vec3 col = mix(dim, vec3(1.0, 0.9, 0.72), vDeb);
+    col = mix(col, aqua, vBand);
     col = mix(col, vec3(1.0), vSwept * 0.85);
     float a = (0.5 + vBand * 0.35 + vSwept * 0.15) * vDepth * smoothstep(0.5, 0.15, d);
     gl_FragColor = vec4(col, a);
@@ -80,9 +84,9 @@ function tubeFrom(flat: number[], scale: number, radius: number, color: number, 
 
 interface Ev { id: number; name: string; km: number; tube: THREE.Mesh; hit: THREE.Mesh; marker: THREE.Mesh; pos: THREE.Vector3 }
 
-export default function Globe({ cloud, scan, scanning, band, selectedId, onPick }: Props) {
+export default function Globe({ cloud, nDebris, scan, scanning, band, selectedId, onPick }: Props) {
   const host = useRef<HTMLDivElement>(null);
-  const api = useRef<{ setCloud: (c: Float32Array | null) => void; setScan: (s: Scan | null) => void; setScanning: (b: boolean) => void; setBand: (b: [number, number] | null) => void; setSelected: (id: number | null) => void } | null>(null);
+  const api = useRef<{ setCloud: (c: Float32Array | null, nDebris: number) => void; setScan: (s: Scan | null) => void; setScanning: (b: boolean) => void; setBand: (b: [number, number] | null) => void; setSelected: (id: number | null) => void } | null>(null);
   const [lab, setLab] = useState<{ name: string; km: number } | null>(null);
   const labelCb = useRef(setLab);
   const pickCb = useRef(onPick);
@@ -218,7 +222,7 @@ export default function Globe({ cloud, scan, scanning, band, selectedId, onPick 
     };
 
     api.current = {
-      setCloud(c) {
+      setCloud(c, nDeb) {
         if (points) {
           scene.remove(points);
           points.geometry.dispose();
@@ -229,6 +233,9 @@ export default function Globe({ cloud, scan, scanning, band, selectedId, onPick 
         const scaled = new Float32Array(c.length);
         for (let i = 0; i < c.length; i++) scaled[i] = c[i] / 1000;
         g.setAttribute("position", new THREE.BufferAttribute(scaled, 3));
+        const n = c.length / 3, flags = new Float32Array(n);
+        for (let i = Math.max(0, n - nDeb); i < n; i++) flags[i] = 1; // the debris sit at the end of the list
+        g.setAttribute("aDebris", new THREE.BufferAttribute(flags, 1));
         points = new THREE.Points(g, cloudMat);
         points.frustumCulled = false;
         scene.add(points);
@@ -403,7 +410,7 @@ export default function Globe({ cloud, scan, scanning, band, selectedId, onPick 
     };
   }, []);
 
-  useEffect(() => { api.current?.setCloud(cloud); }, [cloud]);
+  useEffect(() => { api.current?.setCloud(cloud, nDebris); }, [cloud, nDebris]);
   useEffect(() => { api.current?.setScan(scan); api.current?.setSelected(selectedId); }, [scan]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { api.current?.setScanning(scanning); }, [scanning]);
   useEffect(() => { api.current?.setBand(band); }, [band]);

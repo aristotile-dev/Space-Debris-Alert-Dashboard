@@ -20,7 +20,11 @@ from sgp4.api import Satrec, SatrecArray
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SNAPSHOT_PATH = os.path.join(HERE, "data", "active.txt")
-LIVE_URL = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
+DEBRIS_PATH = os.path.join(HERE, "data", "debris.txt")
+CT = "https://celestrak.org/NORAD/elements/gp.php?GROUP={}&FORMAT=tle"
+LIVE_URL = CT.format("active")
+# the big known breakups and collisions: real debris, not working satellites
+DEBRIS_GROUPS = ["cosmos-2251-debris", "iridium-33-debris", "fengyun-1c-debris", "cosmos-1408-debris"]
 import tempfile
 
 LIVE_CACHE = os.path.join(tempfile.gettempdir(), "spacedebris_active_live.txt")
@@ -41,6 +45,7 @@ class Catalogue:
     perigee_km: np.ndarray
     apogee_km: np.ndarray
     epoch_jd: np.ndarray
+    kinds: np.ndarray  # 0 = working satellite, 1 = debris
     source: str  # "snapshot" or "live"
     loaded_at: float
     version: str
@@ -67,7 +72,7 @@ def datetime_to_jd(dt: datetime) -> float:
     return 2451545.0 + (dt - datetime(2000, 1, 1, 12, tzinfo=timezone.utc)).total_seconds() / 86400.0
 
 
-def parse_tle(text: str, source: str) -> Catalogue:
+def parse_tle(text: str, source: str, kind: int = 0) -> Catalogue:
     lines = [l.rstrip() for l in text.splitlines() if l.strip()]
     names, nums, sats, per, apo, epochs = [], [], [], [], [], []
     i = 0
@@ -96,18 +101,43 @@ def parse_tle(text: str, source: str) -> Catalogue:
         perigee_km=np.array(per),
         apogee_km=np.array(apo),
         epoch_jd=np.array(epochs),
+        kinds=np.full(len(sats), kind, dtype=np.int8),
         source=source,
         loaded_at=time.time(),
         version=f"{source}-{len(sats)}-{int(max(epochs)) if epochs else 0}-{int(time.time())}",
     )
 
 
+def merge(parts: list, source: str) -> Catalogue:
+    """Satellites first, debris after; an object that appears in two groups is kept once."""
+    seen: set = set()
+    names, nums, sats, per, apo, ep, kinds = [], [], [], [], [], [], []
+    for c in parts:
+        for i in range(c.size):
+            n = int(c.satnums[i])
+            if n in seen:
+                continue
+            seen.add(n)
+            names.append(c.names[i]); nums.append(n); sats.append(c.sats[i])
+            per.append(c.perigee_km[i]); apo.append(c.apogee_km[i]); ep.append(c.epoch_jd[i]); kinds.append(int(c.kinds[i]))
+    return Catalogue(
+        names=names, satnums=np.array(nums, dtype=np.int64), sats=sats, perigee_km=np.array(per), apogee_km=np.array(apo),
+        epoch_jd=np.array(ep), kinds=np.array(kinds, dtype=np.int8), source=source, loaded_at=time.time(),
+        version=f"{source}-{len(sats)}-{int(max(ep)) if ep else 0}-{int(time.time())}",
+    )
+
+
 class Store:
-    """Holds the bundled snapshot and, when asked, a live copy that is refreshed at most every two hours."""
+    """Holds the bundled snapshot (satellites plus debris) and, when asked, a live copy refreshed at most every two hours."""
 
     def __init__(self):
         with open(SNAPSHOT_PATH, "r", encoding="utf8") as f:
-            self.snapshot = parse_tle(f.read(), "snapshot")
+            sat = parse_tle(f.read(), "snapshot", 0)
+        parts = [sat]
+        if os.path.exists(DEBRIS_PATH):
+            with open(DEBRIS_PATH, "r", encoding="utf8") as f:
+                parts.append(parse_tle(f.read(), "snapshot", 1))
+        self.snapshot = merge(parts, "snapshot")
         self.live: Catalogue | None = None
         self.live_error: str | None = None
         self.last_try = 0.0
@@ -116,11 +146,16 @@ class Store:
 
     def _load_cached_live(self):
         try:
-            if os.path.exists(LIVE_CACHE) and time.time() - os.path.getmtime(LIVE_CACHE) < LIVE_MIN_INTERVAL_S:
-                with open(LIVE_CACHE, "r", encoding="utf8") as f:
-                    cat = parse_tle(f.read(), "live")
+            fa, fd = LIVE_CACHE + ".active", LIVE_CACHE + ".debris"
+            if os.path.exists(fa) and time.time() - os.path.getmtime(fa) < LIVE_MIN_INTERVAL_S:
+                with open(fa, "r", encoding="utf8") as f:
+                    parts = [parse_tle(f.read(), "live", 0)]
+                if os.path.exists(fd):
+                    with open(fd, "r", encoding="utf8") as f:
+                        parts.append(parse_tle(f.read(), "live", 1))
+                cat = merge(parts, "live")
                 if cat.size > 1000:
-                    cat.loaded_at = os.path.getmtime(LIVE_CACHE)
+                    cat.loaded_at = os.path.getmtime(fa)
                     self.live = cat
         except Exception:
             pass
@@ -140,16 +175,30 @@ class Store:
                 try:
                     import httpx
 
-                    r = httpx.get(LIVE_URL, timeout=20, follow_redirects=True, headers={"User-Agent": "space-debris-alert/1.0"})
-                    r.raise_for_status()
-                    cat = parse_tle(r.text, "live")
-                    if cat.size < 1000:
+                    def grab(url: str) -> str:
+                        r = httpx.get(url, timeout=25, follow_redirects=True, headers={"User-Agent": "cassandra-orbit/1.0"})
+                        r.raise_for_status()
+                        return r.text
+
+                    active_text = grab(LIVE_URL)
+                    parts = [parse_tle(active_text, "live", 0)]
+                    if parts[0].size < 1000:
                         raise ValueError("live feed returned too few objects")
-                    self.live = cat
+                    debris_text = ""
+                    for g in DEBRIS_GROUPS:  # a missing debris group never fails the scan
+                        try:
+                            debris_text += grab(CT.format(g)) + "\n"
+                        except Exception:  # noqa: BLE001
+                            pass
+                    if debris_text.strip():
+                        parts.append(parse_tle(debris_text, "live", 1))
+                    self.live = merge(parts, "live")
                     self.live_error = None
                     try:
-                        with open(LIVE_CACHE, "w", encoding="utf8") as f:
-                            f.write(r.text)
+                        with open(LIVE_CACHE + ".active", "w", encoding="utf8") as f:
+                            f.write(active_text)
+                        with open(LIVE_CACHE + ".debris", "w", encoding="utf8") as f:
+                            f.write(debris_text)
                     except Exception:
                         pass
                 except Exception as e:  # noqa: BLE001
@@ -181,8 +230,8 @@ def _grid(t0: datetime, steps: int = STEPS):
     return jd, fr
 
 
-def cloud_at(cat: Catalogue, t0: datetime) -> list:
-    """Every object's position at t0, as a flat list of whole kilometres: x, y, z, x, y, z ..."""
+def cloud_at(cat: Catalogue, t0: datetime) -> tuple:
+    """Every object's position at t0 as a flat list of whole kilometres (x, y, z, ...), satellites first and the debris last, plus the debris count."""
     jd, fr = _grid(t0, 1)
     out = np.full((cat.size, 3), np.nan)
     for s in range(0, cat.size, 2000):
@@ -190,7 +239,7 @@ def cloud_at(cat: Catalogue, t0: datetime) -> list:
         out[s : s + 2000] = r[:, 0, :]
     ok = np.isfinite(out).all(axis=1)
     flat = np.rint(out[ok]).astype(int).ravel()
-    return flat.tolist()
+    return flat.tolist(), int((cat.kinds[ok] == 1).sum())
 
 
 def risk_label(distance_km: float) -> str:
@@ -283,6 +332,7 @@ def scan(cat: Catalogue, target_id: int, threshold_km: float, t0: datetime) -> d
                 "seconds_from_start": int(sec),
                 "rel_speed_kms": round(rel, 2),
                 "risk": risk_label(dist),
+                "kind": "debris" if cat.kinds[i] == 1 else "satellite",
                 "altitude_km": round(float(np.linalg.norm(tr_full[sec]) - EARTH_RADIUS_KM), 0),
             }
         )
@@ -328,6 +378,8 @@ def scan(cat: Catalogue, target_id: int, threshold_km: float, t0: datetime) -> d
         "objects_propagated": int(len(candidates)),
         "objects_refined": len(refine),
         "co_moving_ignored": co_moving,
+        "objects_debris": int(cat.kinds.sum()),
+        "threat_debris": int(sum(1 for h in hits if cat.kinds[h[1]] == 1)),
         "threats": threats[:50],
         "threat_count": len(threats),
         "analysis_seconds": round(elapsed, 2),

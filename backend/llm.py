@@ -23,12 +23,12 @@ def _summary(scan: dict) -> str:
     lines = [
         f"Target: {t['name']} (NORAD {t['id']}), orbit {int(t['perigee_km'])} to {int(t['apogee_km'])} km up.",
         f"Alert distance: {scan['threshold_km']:g} km. Window: {scan['window']['start_utc']} to {scan['window']['end_utc']} UTC.",
-        f"Objects checked: {scan['objects_total']:,}. Close approaches found: {scan['threat_count']}.",
+        f"Objects checked: {scan['objects_total']:,} (satellites plus {scan.get('objects_debris', 0):,} pieces of tracked debris). Close approaches found: {scan['threat_count']}, of which {scan.get('threat_debris', 0)} are debris.",
         f"Data: {scan['source']} (newest orbital elements from {scan['data_epoch_utc']} UTC).",
     ]
     for i, th in enumerate(scan["threats"][:5], 1):
         lines.append(
-            f"{i}. {th['name']}: {th['distance_km']} km at {th['tca_utc']} UTC, closing speed {th['rel_speed_kms']} km/s, risk band {th['risk']}."
+            f"{i}. {th['name']}: {th['distance_km']} km at {th['tca_utc']} UTC, closing speed {th['rel_speed_kms']} km/s, risk band {th['risk']}, a {th.get('kind', 'satellite')}."
         )
     return "\n".join(lines)
 

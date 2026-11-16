@@ -18,7 +18,7 @@
   <img alt="License" src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square&labelColor=060d4a">
 </p>
 
-Pick a satellite, hit **Scan**, and find out whether anything in orbit gets close to it in the next 24 hours. Cassandra Orbit checks 13,000+ tracked objects against the ISS, Hubble, the Tiangong station, a Starlink, or anything you search for, then shows the close passes on a 3D globe and explains them in plain language.
+Pick a satellite, hit **Scan**, and find out whether anything in orbit gets close to it in the next 24 hours. Cassandra Orbit checks 18,000+ tracked objects (working satellites plus 2,600+ pieces of known debris) against the ISS, Hubble, the Tiangong station, a Starlink, or anything you search for, then shows the close passes on a 3D globe and explains them in plain language.
 
 > This is a screening demo built on public orbital elements. The distances are estimates, **not** an operational collision probability, and real operators use far more precise data.
 
@@ -74,7 +74,7 @@ TLEs go stale within days. The snapshot is fixed, so a scan on it starts from th
 | **Frontend** | React 18, TypeScript, Vite, three.js. Fonts: Michroma, Sora, Martian Mono (self-hosted). |
 | **Backend** | FastAPI, NumPy, [`sgp4`](https://pypi.org/project/sgp4/) (vectorised `SatrecArray`), httpx. |
 | **AI** | Groq (`openai/gpt-oss-120b`) through its REST API. A rule-based briefing is used when there is no key. |
-| **Data** | [CelesTrak](https://celestrak.org) `active` group, plus a bundled snapshot in `backend/data/active.txt`. |
+| **Data** | [CelesTrak](https://celestrak.org) `active` group plus the Cosmos 2251, Iridium 33, Fengyun-1C and Cosmos 1408 debris groups, with a bundled snapshot in `backend/data/active.txt` and `backend/data/debris.txt`. Debris points are warm white on the globe and diamond-shaped on the timeline. |
 
 ### On a phone
 
@@ -129,7 +129,7 @@ Space-Debris-Alert-Dashboard
 │   ├── api.py         FastAPI routes and rate limits
 │   ├── llm.py         briefing and chat (Groq), rule-based fallback
 │   ├── make_demo.py   writes public/demo.json
-│   └── data/active.txt   orbit snapshot
+│   └── data/             orbit snapshots (active.txt, debris.txt)
 ├── public/demo.json   precomputed first screen
 ├── PRODUCT.md · DESIGN.md
 └── assets/            README screenshots

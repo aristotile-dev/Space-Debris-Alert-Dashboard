@@ -10,11 +10,13 @@ store = core.Store()
 cat = store.snapshot
 t0 = core.reference_time(cat)
 scan = core.scan(cat, 25544, 50.0, t0)
+xyz, n_debris = core.cloud_at(cat, t0)
 out = {
     "t0_utc": t0.strftime("%Y-%m-%d %H:%M:%S"),
     "scan": scan,
     "briefing": llm.rule_briefing(scan),
-    "xyz_km": core.cloud_at(cat, t0),
+    "xyz_km": xyz,
+    "n_debris": n_debris,
     "featured": [],
 }
 for name in ["ISS (ZARYA)", "HST", "CSS (TIANHE)", "STARLINK-4328"]:
