@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <b>Live demo</b> (link added once deployed)
+  <a href="https://cassandra-orbit.vercel.app"><b>Live demo</b></a>
   &nbsp;·&nbsp;
   <a href="#how-it-works">How it works</a>
   &nbsp;·&nbsp;
@@ -25,13 +25,13 @@ Pick a satellite, hit **Scan**, and find out whether anything in orbit gets clos
 ## Features
 
 <p align="center">
-  <img src="assets/scan-hubble.png" alt="A Hubble scan: the whole catalogue as a point cloud around the glass Earth, Hubble's orbit in aqua and 126 close passes in tangerine" width="100%">
+  <img src="assets/scan-hubble.png" alt="A Hubble scan: the whole catalogue as a point cloud around the glass Earth, Hubble's orbit in aqua and 343 close passes in tangerine" width="100%">
 </p>
 
 * **A real physics scan.** Every object is flown forward 24 hours with SGP4, the standard orbit model, and the target is compared against all of them.
 * **Fast enough to feel live.** Objects that can never reach the target's altitude are dropped first, the rest are propagated in batches, and only the close ones are re-checked second by second. The ISS scan takes a few seconds instead of the original 17.
 * **Fast crossings are not missed.** Two objects meeting head-on close at 10 to 14 km/s, so a one-minute sampling grid can skip over the closest point. The re-check finds it (the closest ISS pass in the bundled snapshot is 6.8 km at 10.3 km/s).
-* **Snapshot or live orbits.** A bundled snapshot of 13,163 objects always works; the Live switch pulls today's orbits from CelesTrak (cached for two hours, as CelesTrak asks).
+* **Snapshot or live orbits.** A bundled snapshot of 18,000+ objects (satellites plus known debris), refreshed every day by a GitHub Action, always works; the Live switch pulls today's orbits from CelesTrak (cached for two hours, as CelesTrak asks).
 * **A 3D view you can drag and poke.** The whole catalogue as a point cloud, the target's orbit and every threat's full orbit as a closed ring. Hover an orbit to see who it is, tap or click it to pin it (the pass list and table do the same).
 * **An AI analyst.** A plain-language briefing for every scan, an "explain it simply" mode, and a chat that only knows that scan. It sees the numbers, nothing else.
 * **A shareable close-call card.** One tap turns the scan into a 4:5 image.
@@ -65,7 +65,7 @@ The first screen opens with a precomputed ISS scan bundled in `public/demo.json`
 
 ### A note on orbit data
 
-TLEs go stale within days. The snapshot is fixed, so a scan on it starts from the snapshot's own date, not from today, and says so on screen. Use **Live** for today's orbits.
+TLEs go stale within days. The snapshot is refreshed daily, but a scan on it still starts from the snapshot's own date, not from today, and says so on screen. Use **Live** for today's orbits.
 
 ## Tech stack
 
