@@ -131,7 +131,6 @@ Space-Debris-Alert-Dashboard
 │   ├── make_demo.py   writes public/demo.json
 │   └── data/             orbit snapshots (active.txt, debris.txt)
 ├── public/demo.json   precomputed first screen
-├── PRODUCT.md · DESIGN.md
 └── assets/            README screenshots
 ```
 
