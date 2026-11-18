@@ -18,6 +18,9 @@
   <img alt="License" src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square&labelColor=060d4a">
 </p>
 
+<!-- translations:start -->
+<!-- translations:end -->
+
 Pick a satellite, hit **Scan**, and find out whether anything in orbit gets close to it in the next 24 hours. Cassandra Orbit checks 18,000+ tracked objects (working satellites plus 2,600+ pieces of known debris) against the ISS, Hubble, the Tiangong station, a Starlink, or anything you search for, then shows the close passes on a 3D globe and explains them in plain language.
 
 > This is a screening demo built on public orbital elements. The distances are estimates, **not** an operational collision probability, and real operators use far more precise data.
