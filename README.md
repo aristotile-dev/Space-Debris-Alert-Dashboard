@@ -19,6 +19,7 @@
 </p>
 
 <!-- translations:start -->
+<p align="center"><sub>Also available in: <a href="docs/translations/README.ta.md">தமிழ்</a> · <a href="docs/translations/README.hi.md">हिन्दी</a> · <a href="docs/translations/README.te.md">తెలుగు</a> · <a href="docs/translations/README.ml.md">മലയാളം</a> · <a href="docs/translations/README.kn.md">ಕನ್ನಡ</a> · <a href="docs/translations/README.bn.md">বাংলা</a> · <a href="docs/translations/README.es.md">Español</a> · <a href="docs/translations/README.fr.md">Français</a> · <a href="docs/translations/README.de.md">Deutsch</a> · <a href="docs/translations/README.pt-BR.md">Português</a> · <a href="docs/translations/README.ja.md">日本語</a> · <a href="docs/translations/README.zh-CN.md">简体中文</a> · <a href="docs/translations/README.ar.md">العربية</a></sub></p>
 <!-- translations:end -->
 
 Pick a satellite, hit **Scan**, and find out whether anything in orbit gets close to it in the next 24 hours. Cassandra Orbit checks 18,000+ tracked objects (working satellites plus 2,600+ pieces of known debris) against the ISS, Hubble, the Tiangong station, a Starlink, or anything you search for, then shows the close passes on a 3D globe and explains them in plain language.
